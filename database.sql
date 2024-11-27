@@ -201,3 +201,23 @@ CREATE TABLE reviews
     FOREIGN KEY (user_id) REFERENCES users (id),
     INDEX (reviewable_type, reviewable_id)
 );
+
+DELIMITER $$
+CREATE TRIGGER after_review_insert
+    AFTER INSERT
+    ON reviews
+    FOR EACH ROW
+BEGIN
+    CASE NEW.reviewable_type
+        WHEN 'POST'
+            THEN INSERT INTO notifications (notificationable_type, notificationable_id, message, user_id, created_at)
+                 SELECT 'REVIEW',
+                        NEW.reviewable_id,
+                        CONCAT('<strong>', u.name, '</strong> reviewed your post as <em>', NEW.eval,
+                               '</em>: <a href="/posts/', NEW.reviewable_id, '">View Review</a>'),
+                        p.user_id,
+                        NOW()
+                 FROM posts p
+                          JOIN users u ON u.id = NEW.user_id
+                 WHERE p.id = NEW.reviewable_id;
+
