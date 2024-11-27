@@ -83,5 +83,38 @@ VALUES ('Entusiastas de Tecnologia', 'Um grupo para pessoas apaixonadas por tecn
        ('Fotógrafos Profissionais', 'Um grupo para fotógrafos exibirem e discutirem seus trabalhos.'),
        ('Apaixonados por Gastronomia', 'Um grupo para compartilhar receitas e discutir comidas de todo o mundo.'),
        ('Empreendedores', 'Um grupo para debater ideias de negócios e fazer networking.');
+-- Relacionando um owner para o grupo
+INSERT INTO memberships (group_id, user_id, role)
+SELECT g.id,
+       (SELECT id FROM users ORDER BY RAND() LIMIT 1) AS user_id,
+       'OWNER'
+FROM `groups` g;
 
+-- Relacionando um admin para o grupo
+INSERT INTO memberships (group_id, user_id, role)
+SELECT g.id,
+       (SELECT id
+        FROM users
+        WHERE id NOT IN (SELECT user_id
+                         FROM memberships
+                         WHERE group_id = g.id
+                           AND role = 'OWNER')
+        ORDER BY RAND()
+        LIMIT 1) AS user_id,
+       'ADMIN'
+FROM `groups` g;
+
+-- Relacionando membro ao grupo
+INSERT INTO memberships (group_id, user_id, role)
+SELECT g.id, u.user_id, 'MEMBER'
+FROM `groups` g
+         JOIN (SELECT u.id AS user_id, g.id AS group_id
+               FROM users u
+                        CROSS JOIN `groups` g
+               WHERE u.id NOT IN (SELECT user_id
+                                  FROM memberships
+                                  WHERE memberships.group_id = g.id
+                                    AND memberships.role IN ('OWNER', 'ADMIN'))
+               ORDER BY RAND()) u ON g.id = u.group_id
+GROUP BY g.id, u.user_id;
 
