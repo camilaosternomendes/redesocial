@@ -79,3 +79,151 @@ CREATE TABLE notifications
     deleted_at            DATETIME DEFAULT NULL,
     INDEX (notificationable_type, notificationable_id)
 );
+
+CREATE TABLE `groups`
+(
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT         NOT NULL,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE memberships
+(
+    group_id   INT NOT NULL,
+    user_id    INT NOT NULL,
+    role       ENUM ('OWNER','ADMIN','MEMBER') DEFAULT 'MEMBER',
+    PRIMARY KEY (group_id, user_id),
+    created_at DATETIME                        DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME                        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (group_id) REFERENCES `groups` (id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
+CREATE TABLE posts
+(
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    content     LONGTEXT NOT NULL,
+    description TEXT     NULL,
+    user_id     INT      NOT NULL,
+    group_id    INT      NULL,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at  DATETIME DEFAULT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES `groups` (id) ON DELETE CASCADE
+);
+
+CREATE TRIGGER after_post_insert
+    AFTER INSERT
+    ON posts
+    FOR EACH ROW
+BEGIN
+    INSERT INTO notifications (notificationable_type, notificationable_id, message, user_id)
+    SELECT 'POST',
+           NEW.id,
+           CONCAT('<strong>', u.name, '</strong> created a new post: <a href="/posts/', NEW.id, '">View Post</a>'),
+           r.follower_id
+    FROM relationships r
+             JOIN users u ON u.id = NEW.user_id
+    WHERE r.followed_id = NEW.user_id;
+END;
+
+CREATE TABLE comments
+(
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    commentable_type ENUM ('POST', 'REPLY') NOT NULL,
+    commentable_id   INT                    NOT NULL,
+    content          LONGTEXT               NOT NULL,
+    user_id          INT,
+    created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at       DATETIME DEFAULT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    INDEX (commentable_type, commentable_id)
+);
+
+CREATE TRIGGER after_comment_on_post
+    AFTER INSERT
+    ON comments
+    FOR EACH ROW
+BEGIN
+    IF NEW.commentable_type = 'POST' THEN
+        INSERT INTO notifications (notificationable_type, notificationable_id, message, user_id, created_at)
+        SELECT 'POST',
+               NEW.commentable_id,
+               CONCAT('<strong>', u.name, '</strong> commented on your post: <a href="/posts/', NEW.commentable_id,
+                      '">View Comment</a>'),
+               p.user_id,
+               NOW()
+        FROM posts p
+                 JOIN users u ON u.id = NEW.user_id
+        WHERE p.id = NEW.commentable_id;
+    END IF;
+END;
+
+
+CREATE TRIGGER after_comment_on_comment
+    AFTER INSERT
+    ON comments
+    FOR EACH ROW
+BEGIN
+    IF NEW.commentable_type = 'REPLY' THEN
+        INSERT INTO notifications (notificationable_type, notificationable_id, message, user_id, created_at)
+        SELECT 'COMMENT',
+               NEW.commentable_id,
+               CONCAT('<strong>', u.name, '</strong> replied to your comment: <a href="/comments/', NEW.commentable_id,
+                      '">View Reply</a>'),
+               c.user_id,
+               NOW()
+        FROM comments c
+                 JOIN users u ON u.id = NEW.user_id
+        WHERE c.id = NEW.commentable_id;
+    END IF;
+END;
+
+CREATE TABLE reviews
+(
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    reviewable_type ENUM ('USER', 'POST', 'REPLY') NOT NULL,
+    reviewable_id   INT                            NOT NULL,
+    eval            ENUM ('POSITIVE', 'NEGATIVE')  NOT NULL,
+    user_id         INT                            NOT NULL,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at      DATETIME DEFAULT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    INDEX (reviewable_type, reviewable_id)
+);
+
+CREATE TRIGGER after_review_insert
+    AFTER INSERT
+    ON reviews
+    FOR EACH ROW
+BEGIN
+    CASE NEW.reviewable_type
+        WHEN 'POST'
+            THEN INSERT INTO notifications (notificationable_type, notificationable_id, message, user_id, created_at)
+                 SELECT 'REVIEW',
+                        NEW.reviewable_id,
+                        CONCAT('<strong>', u.name, '</strong> reviewed your post as <em>', NEW.eval,
+                               '</em>: <a href="/posts/', NEW.reviewable_id, '">View Review</a>'),
+                        p.user_id,
+                        NOW()
+                 FROM posts p
+                          JOIN users u ON u.id = NEW.user_id
+                 WHERE p.id = NEW.reviewable_id;
+
+        WHEN 'REPLY'
+            THEN INSERT INTO notifications (notificationable_type, notificationable_id, message, user_id, created_at)
+                 SELECT 'REVIEW',
+                        NEW.reviewable_id,
+                        CONCAT('<strong>', u.name, '</strong> reviewed your comment as <em>', NEW.eval,
+                               '</em>: <a href="/comments/', NEW.reviewable_id, '">View Review</a>'),
+                        c.user_id,
+                        NOW()
+                 FROM comments c
+                          JOIN users u ON u.id = NEW.user_id
+                 WHERE c.id = NEW.reviewable_id;
+
