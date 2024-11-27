@@ -80,3 +80,32 @@ CREATE TABLE tags (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 ```
+* *id*: Identificador único da tag.
+* *name*: Nome da tag.
+* *user\_id*: ID do usuário ao qual a tag pertence.
+* *created\_at*: Data e hora da criação da tag.
+
+Gatilho before_tag_insert
+
+Este gatilho impede que um usuário tenha mais de 5 tags.
+
+sql
+CREATE TRIGGER before_tag_insert
+    BEFORE INSERT
+    ON tags
+    FOR EACH ROW
+BEGIN
+    DECLARE tag_count INT;
+
+    -- Conta o número de tags associadas ao usuário
+    SELECT COUNT(*)
+    INTO tag_count
+    FROM tags
+    WHERE user_id = NEW.user_id;
+
+    -- Verifica se o número de tags já atingiu o limite
+    IF tag_count >= 5 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'A user cannot have more than 5 tags';
+    END IF;
+
