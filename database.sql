@@ -232,4 +232,15 @@ BEGIN
                  FROM comments c
                           JOIN users u ON u.id = NEW.user_id
                  WHERE c.id = NEW.reviewable_id;
-
+  WHEN 'USER'
+            THEN INSERT INTO notifications (notificationable_type, notificationable_id, message, user_id, created_at)
+                 SELECT 'REVIEW',
+                        NEW.reviewable_id,
+                        CONCAT('<strong>', u.name, '</strong> reviewed you as <em>', NEW.eval, '</em>'),
+                        NEW.reviewable_id,
+                        NOW()
+                 FROM users u
+                 WHERE u.id = NEW.user_id;
+        END CASE;
+END;
+DELIMITER ;
