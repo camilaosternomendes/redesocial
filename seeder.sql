@@ -131,3 +131,16 @@ SELECT CONCAT(
        'Descrição aleatória',
        u.id
 FROM users u;
+
+INSERT INTO posts (content, description, user_id)
+SELECT CONCAT(
+               '2º Post de <a  href="/users/',
+               u.id,
+               '">',
+               u.name,
+               '</a>: ',
+               '<p>Lorem ipsum dolor sit amet. Et maxime galisum in galisum deleniti <em>Ut aliquid ut ipsum dolores At repellat quia et asperiores inventore</em>. Est officia sunt qui vero repellendus <strong>Ut quia et nihil quam vel omnis sint sed soluta nulla</strong>. </p><blockquote cite="https://www.loremipzum.com">Id consequatur deleniti et vitae rerum ut voluptates delectus At quidem ducimus et voluptatem quod qui galisum galisum. </blockquote><p>Et galisum rerum <em>Qui earum et quod consequatur ut consectetur temporibus</em> hic saepe soluta est accusantium quae et laborum nobis? Aut ipsum sequi eum reprehenderit consequaturet beatae sed doloribus quia. </p>'
+       ),
+       'Descrição aleatória',
+       u.id
+FROM users u;
