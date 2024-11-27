@@ -1,5 +1,4 @@
-# redesocial
-# Documentação de Criação de Banco de Dados
+# Projeto da Rede Social
 
 Este script SQL cria a estrutura do banco de dados **at2n2**, incluindo tabelas para usuários, mensagens, tags, relacionamentos, notificações, grupos, postagens, comentários e avaliações. Além disso, são definidos gatilhos (triggers) para garantir a integridade dos dados e a lógica de negócio no sistema.
 
