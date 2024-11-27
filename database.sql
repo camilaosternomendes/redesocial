@@ -221,3 +221,15 @@ BEGIN
                           JOIN users u ON u.id = NEW.user_id
                  WHERE p.id = NEW.reviewable_id;
 
+        WHEN 'REPLY'
+            THEN INSERT INTO notifications (notificationable_type, notificationable_id, message, user_id, created_at)
+                 SELECT 'REVIEW',
+                        NEW.reviewable_id,
+                        CONCAT('<strong>', u.name, '</strong> reviewed your comment as <em>', NEW.eval,
+                               '</em>: <a href="/comments/', NEW.reviewable_id, '">View Review</a>'),
+                        c.user_id,
+                        NOW()
+                 FROM comments c
+                          JOIN users u ON u.id = NEW.user_id
+                 WHERE c.id = NEW.reviewable_id;
+
