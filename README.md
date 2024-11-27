@@ -108,4 +108,44 @@ BEGIN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'A user cannot have more than 5 tags';
     END IF;
+    END;
+
+
+### 2.4. Tabela relationships
+
+Armazena os relacionamentos de seguidores entre os usuários.
+
+sql
+CREATE TABLE relationships
+(
+    followed_id INT NOT NULL,
+    follower_id INT NOT NULL,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (followed_id, follower_id),
+    FOREIGN KEY (followed_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (follower_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+
+* *followed\_id*: ID do usuário seguido.
+* *follower\_id*: ID do usuário que segue.
+* *created\_at*: Data e hora do relacionamento.
+
+### 2.5. Tabela notifications
+
+Armazena as notificações para os usuários.
+
+sql
+CREATE TABLE notifications
+(
+    id                    INT AUTO_INCREMENT PRIMARY KEY,
+    notificationable_type ENUM ('POST', 'COMMENT', 'REVIEW') NOT NULL,
+    notificationable_id   INT                                NOT NULL,
+    message               TEXT                               NOT NULL,
+    user_id               INT                                NOT NULL,
+    created_at            DATETIME DEFAULT CURRENT_TIMESTAMP,
+    deleted_at            DATETIME DEFAULT NULL,
+    INDEX (notificationable_type, notificationable_id)
+);
+
 
