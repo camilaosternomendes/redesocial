@@ -187,3 +187,17 @@ BEGIN
     END IF;
 END;
 DELIMITER ;
+
+CREATE TABLE reviews
+(
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    reviewable_type ENUM ('USER', 'POST', 'REPLY') NOT NULL,
+    reviewable_id   INT                            NOT NULL,
+    eval            ENUM ('POSITIVE', 'NEGATIVE')  NOT NULL,
+    user_id         INT                            NOT NULL,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at      DATETIME DEFAULT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    INDEX (reviewable_type, reviewable_id)
+);
