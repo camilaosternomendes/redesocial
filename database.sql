@@ -168,3 +168,22 @@ CREATE TRIGGER after_comment_on_comment
     AFTER INSERT
     ON comments
     FOR EACH ROW
+CREATE TRIGGER after_comment_on_comment
+    AFTER INSERT
+    ON comments
+    FOR EACH ROW
+BEGIN
+    IF NEW.commentable_type = 'REPLY' THEN
+        INSERT INTO notifications (notificationable_type, notificationable_id, message, user_id, created_at)
+        SELECT 'COMMENT',
+               NEW.commentable_id,
+               CONCAT('<strong>', u.name, '</strong> replied to your comment: <a href="/comments/', NEW.commentable_id,
+                      '">View Reply</a>'),
+               c.user_id,
+               NOW()
+        FROM comments c
+                 JOIN users u ON u.id = NEW.user_id
+        WHERE c.id = NEW.commentable_id;
+    END IF;
+END;
+DELIMITER ;
