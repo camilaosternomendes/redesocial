@@ -179,3 +179,33 @@ FROM posts p
 WHERE u.id != p.user_id -- Evita que o autor do post faça uma review no próprio post
 ORDER BY RAND()
 LIMIT 100;
+
+
+-- Inserindo reviews para usuários
+INSERT INTO reviews (reviewable_type, reviewable_id, eval, user_id, created_at, updated_at)
+SELECT 'USER'                                   AS reviewable_type,
+       u.id                                     AS reviewable_id,
+       IF(RAND() < 0.5, 'POSITIVE', 'NEGATIVE') AS eval,    -- Avaliação aleatória (50% positiva ou negativa)
+       u2.id                                    AS user_id, -- Outro usuário avaliando
+       NOW()                                    AS created_at,
+       NOW()                                    AS updated_at
+FROM users u
+         CROSS JOIN users u2
+WHERE u.id != u2.id -- Evita que o usuário avalie a si mesmo
+ORDER BY RAND()
+LIMIT 100;
+
+-- Inserindo reviews para respostas (comentários)
+INSERT INTO reviews (reviewable_type, reviewable_id, eval, user_id, created_at, updated_at)
+SELECT 'REPLY'                                  AS reviewable_type,
+       c.id                                     AS reviewable_id,
+       IF(RAND() < 0.5, 'POSITIVE', 'NEGATIVE') AS eval,    -- Avaliação aleatória (50% positiva ou negativa)
+       u.id                                     AS user_id, -- Outro usuário avaliando
+       NOW()                                    AS created_at,
+       NOW()                                    AS updated_at
+FROM comments c
+         CROSS JOIN users u
+WHERE u.id != c.user_id            -- Evita que o autor da resposta faça uma review no próprio comentário
+  AND c.commentable_type = 'REPLY' -- Busca apenas os comentários que são repostas
+ORDER BY RAND()
+LIMIT 100; -- Insere até 100 reviews para respostas
