@@ -144,3 +144,24 @@ SELECT CONCAT(
        'Descrição aleatória',
        u.id
 FROM users u;
+
+
+-- Inserindo comentários para cada post
+INSERT INTO comments (commentable_type, commentable_id, content, user_id)
+SELECT 'POST', p.id, CONCAT('Comentário sobre o post ', p.id), u.id
+FROM posts p
+         CROSS JOIN users u
+WHERE u.id != p.user_id -- Evita comentários do próprio autor
+ORDER BY RAND()
+LIMIT 100;
+
+-- Inserindo respostas
+INSERT INTO comments (commentable_type, commentable_id, content, user_id)
+SELECT 'REPLY', c.id, CONCAT('Resposta ao comentário ', c.id), u.id
+FROM comments c
+         CROSS JOIN users u
+WHERE c.commentable_type = 'POST'
+  AND u.id != c.user_id
+ORDER BY RAND()
+LIMIT 50;
+
