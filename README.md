@@ -300,4 +300,51 @@ END;
 
 ## Uso
 
+Para rodar o arquivo database.sql no MySQL, siga os passos abaixo:
+
+1. *1. Instalação do SGBD:* Certifique-se de que você tem o MySQL instalado em seu sistema.
+2. *2. Acesso ao MySQL:*
+
+* Abra o terminal ou o prompt de comando.
+* Digite o seguinte comando para acessar o MySQL:
+
+javascript
+mysql -u seu_usuario -p
+
+
+* Substitua seu_usuario pelo seu nome de usuário do MySQL. Após pressionar Enter, você será solicitado a inserir sua senha.
+
+1. *Execução do Script*:
+
+* Para rodar o arquivo database.sql, utilize o seguinte comando no terminal:
+
+javascript
+source / caminho / para / o / database.sql;
+
+
+* Ou, se estiver usando MySQL, você pode usar:
+
+javascript
+\. /caminho/para/o/database.sql
+
+
+* Certifique-se de substituir /caminho/para/o/database.sql pelo caminho real onde o arquivo está localizado.
+
+1. *Verificação:*
+
+* Após a execução do script, verifique se as tabelas e estruturas foram criadas corretamente usando o comando:
+
+javascript
+SHOW TABLES;
+
+
+1. *Testes:*
+
+* Realize alguns testes para garantir que o banco de dados está funcionando conforme esperado, inserindo dados nas tabelas e consultando-os.
+
+Seguindo esses passos, você conseguirá rodar o arquivo database.sql e configurar o banco de dados corretamente.
+
+## Conclusão
+
+Este script define a estrutura inicial do banco de dados *at2n2*, incluindo tabelas essenciais para o gerenciamento de usuários, mensagens, grupos, postagens, comentários e notificações. Além disso, os gatilhos implementados garantem a consistência dos dados e geram notificações automáticas para interações entre os usuários, proporcionando uma experiência mais dinâmica e interativa.
 
