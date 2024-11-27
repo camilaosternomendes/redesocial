@@ -118,3 +118,16 @@ FROM `groups` g
                ORDER BY RAND()) u ON g.id = u.group_id
 GROUP BY g.id, u.user_id;
 
+-- Inserindo posts para cada usuário
+INSERT INTO posts (content, description, user_id)
+SELECT CONCAT(
+               '1º Post de <a  href="/users/',
+               u.id,
+               '">',
+               u.name,
+               ': ',
+               '<h1>Qui placeat nihil qui iure facilis. </h1><p>Lorem ipsum dolor sit amet. Nam dignissimos doloremque <strong>Aut error quo recusandae quam in labore nihil</strong> nam molestias distinctio aut pariatur alias ut atque voluptas. Ea consequatur architecto ex sunt vero <a href="https://www.loremipzum.com" target="_blank">Quo iste sit corporis sint aut rerum assumenda non doloremque consequuntur</a>. In inventore alias <em>Quo velit At expedita praesentium est dolorem voluptatem</em> aut internos sapiente est molestiae quia ab asperiores inventore. </p><h2>Ad deleniti omnis id tempore consequatur sed vitae dicta. </h2><p>Eum inventore nobisqui dolorem sed velit beatae. Ut voluptatum voluptatem <em>Qui ullam eum molestiae dolores et reprehenderit iste</em> est repellat nihil aut fugit voluptas aut debitis pariatur! Hic beatae aliquid <strong>Et dolores ut quibusdam voluptatem et veritatis iusto</strong> non repellendus unde. Eos animi accusantium ea accusamus dignissimosEx veritatis non consequuntur consequatur id saepe obcaecati. </p><h3>Aut quasi sint est velit eius et error consequatur. </h3><p>Sit consequatur sequi non quod corrupti <em>Ea sint 33 sunt distinctio</em> id voluptas fugit qui doloribus labore et itaque numquam. Ut dolor magni et voluptatibus aliaseum eveniet cum dolorum dicta. </p>'
+       ),
+       'Descrição aleatória',
+       u.id
+FROM users u;
