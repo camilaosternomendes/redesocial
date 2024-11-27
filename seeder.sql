@@ -165,3 +165,17 @@ WHERE c.commentable_type = 'POST'
 ORDER BY RAND()
 LIMIT 50;
 
+
+-- Inserindo reviews para posts
+INSERT INTO reviews (reviewable_type, reviewable_id, eval, user_id, created_at, updated_at)
+SELECT 'POST'                                   AS reviewable_type,
+       p.id                                     AS reviewable_id,
+       IF(RAND() < 0.5, 'POSITIVE', 'NEGATIVE') AS eval, -- Avaliação aleatória (50% positiva ou negativa)
+       u.id                                     AS user_id,
+       NOW()                                    AS created_at,
+       NOW()                                    AS updated_at
+FROM posts p
+         CROSS JOIN users u
+WHERE u.id != p.user_id -- Evita que o autor do post faça uma review no próprio post
+ORDER BY RAND()
+LIMIT 100;
