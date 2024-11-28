@@ -1,0 +1,66 @@
+# Relatório Técnico do Banco de Dados
+
+### **1. Requisitos do Sistema**
+
+O banco de dados foi projetado para uma plataforma social que oferece os seguintes recursos:
+
+- Gestão de usuários e seus perfis.
+- Envio e recebimento de mensagens.
+- Interações sociais, como seguir outros usuários e criação de grupos.
+- Publicação de conteúdos (posts), incluindo comentários e avaliações.
+- Sistema de notificações automatizadas para eventos relevantes.
+
+### **2. Entidades e Atributos**
+
+As principais entidades e seus atributos são:
+
+- **Users**: Representa os usuários da plataforma com atributos como `name`, `email`, `birth_date`, e `avatar`.
+- **Messages**: Registra as mensagens entre usuários, incluindo remetente, destinatário, e conteúdo.
+- **Tags**: Permite que os usuários criem até 5 tags pessoais.
+- **Relationships**: Representa conexões entre seguidores e seguidos.
+- **Groups**: Define grupos com `name` e `description`.
+- **Memberships**: Relaciona usuários aos grupos com diferentes papéis (ex.: OWNER, ADMIN, MEMBER).
+- **Posts**: Gerencia as publicações dos usuários, podendo ser associadas a grupos.
+- **Comments**: Permite comentários em posts e respostas a outros comentários.
+- **Reviews**: Avaliações positivas ou negativas sobre usuários, posts e comentários.
+- **Notifications**: Registra notificações personalizadas para eventos como posts, comentários e avaliações.
+
+### **3. Relacionamentos e Cardinalidade**
+
+- **Users → Messages**: Cada usuário pode ser remetente e destinatário de várias mensagens (1:N). Chaves estrangeiras garantem o vínculo entre usuários e mensagens.
+- **Users → Tags**: Relacionamento 1:N, mas limitado a no máximo 5 tags por usuário. Implementado por meio de uma trigger.
+- **Users → Relationships**: Relacionamento N:N representado por uma tabela intermediária (`relationships`).
+- **Groups → Memberships**: Relacionamento N:N entre usuários e grupos, com papéis distintos atribuídos aos usuários.
+- **Posts → Comments**: Um post pode ter muitos comentários (1:N). Comentários também podem ser respostas a outros comentários (relação recursiva).
+- **Users → Reviews**: Cada usuário pode avaliar vários elementos (N:N, modelado por `reviews`).
+- **Notifications**: Relacionada indiretamente a várias entidades por meio de um design polimórfico.
+
+### **4. Decisões de Modelagem**
+
+- **Modelagem de usuários**: A tabela `users` utiliza uma estrutura extensível e padrão, com suporte a operações de exclusão lógica (`deleted_at`) e rastreamento de alterações.
+- **Cardinalidade de relacionamentos**:
+    - A relação entre `followed_id` e `follower_id` é modelada como N:N, pois cada usuário pode seguir e ser seguido por vários outros.
+    - A relação entre posts e comentários suporta hierarquia ao incluir um campo `commentable_type`, permitindo maior flexibilidade.
+- **Triggers**: Automação do sistema de notificações e validação de limites, como no caso do limite de tags por usuário.
+- **Polimorfismo**: Implementado em `comments`, `reviews`, e `notifications`, permitindo que diferentes entidades sejam tratadas de maneira uniforme.
+
+### **5. Explicação e Contextualização**
+
+- **Design modular e expansível**: A estrutura é escalável, permitindo a adição de novas funcionalidades sem impacto significativo.
+- **Triggers para lógica de negócio**: Mecanismos como validação de limite de tags e notificações garantem consistência e melhor experiência do usuário.
+- **Cascata em exclusões**: Relacionamentos críticos como `posts` e `groups` utilizam exclusão em cascata para manter a integridade do banco.
+- **Indexação**: Implementada para melhorar o desempenho em consultas críticas, como em mensagens e notificações.
+
+### **6. Análise e Benefícios**
+
+- **Manutenibilidade**: Separação clara entre entidades e uso de triggers para automatizar processos reduz a complexidade do código externo.
+- **Desempenho**: Uso de índices e design eficiente garante desempenho em consultas.
+- **Confiabilidade**: Garantida por restrições como chaves estrangeiras, índices e triggers.
+
+Este design fornece uma base sólida para o sistema, com flexibilidade para atender a requisitos futuros.
+
+### Modelo Entidade Relacionamento
+
+![at2n2 (1).png](at2n2_(1).png)
+
+![image.png](image.png)
